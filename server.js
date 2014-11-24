@@ -6,13 +6,14 @@
 */
 'use strict';
 
+// can use node to talk to ANY sql server like postgresql
 var sqlite3 = require('sqlite3');
 var express = require('express');
 var bodyParser = require('body-parser');
 
 var tasksController = require('./controllers/taskController');
 
-//open the database
+//open the database... anytime
 var dbPath = __dirname + '/data/tasks.db';
 var db = new sqlite3.Database(dbPath, function(err) {
     if (err) {
@@ -25,16 +26,19 @@ var db = new sqlite3.Database(dbPath, function(err) {
         //create an express application
         var app = express();
 
-        //use the JSON parser from bodyParser
+        //use the JSON parser from bodyParser - .use used with express
+        app.use(bodyParser.json());
 
         //serve static files from the /static sub-directory
         app.use(express.static(__dirname + '/static'));
 
         //create a router for our REST API
+        var apiRouter = express.Router();
+        apiRouter.use(tasksController.Router(db));
 
         //add routers from our various controllers
         //for now, all we have is a tasksController
-
+        app.use('/api', apiRouter);
         //mount all REST API resources under an /api resource
         //all of the controller resources will be relative to this
 
